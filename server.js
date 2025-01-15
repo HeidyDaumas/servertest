@@ -9,42 +9,25 @@ server.on('connection', (socket) => {
     socket.on('message', (message) => {
         console.log('Received:', message);
 
-        // Validate and forward only valid pattern data
-        if (isValidPattern(message)) {
+        // Forward only text data
+        if (typeof message === 'string') {
             server.clients.forEach((client) => {
                 if (client !== socket && client.readyState === WebSocket.OPEN) {
                     client.send(message);
                 }
             });
         } else {
-            console.log('Invalid pattern, ignoring:', message);
+            console.log('Ignoring non-text message');
         }
-    });
-
-    socket.on('pong', () => {
-        socket.isAlive = true;
     });
 
     socket.on('close', () => {
         console.log('Client disconnected');
     });
-});
 
-// Function to validate pattern format
-function isValidPattern(message) {
-    const patternRegex = /^\d+,\d+,\d+$/; // Matches "frequency,amplitude,duration"
-    return patternRegex.test(message);
-}
-
-// Heartbeat to keep connections alive
-setInterval(() => {
-    server.clients.forEach((socket) => {
-        if (socket.isAlive === false) {
-            return socket.terminate();
-        }
-        socket.isAlive = false;
-        socket.ping();
+    socket.on('error', (err) => {
+        console.error('WebSocket error:', err);
     });
-}, 10000);
+});
 
 console.log(`WebSocket server is running on ws://localhost:${PORT}`);
