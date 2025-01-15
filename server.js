@@ -5,18 +5,19 @@ const server = new WebSocket.Server({ port: PORT });
 
 server.on('connection', (socket) => {
     console.log('Client connected');
-    socket.send("Hello World"); // Initial message for connection testing
 
     socket.on('message', (message) => {
         console.log('Received:', message);
 
-        // Forward the message only if it's valid pattern data
+        // Validate and forward only valid pattern data
         if (isValidPattern(message)) {
             server.clients.forEach((client) => {
                 if (client !== socket && client.readyState === WebSocket.OPEN) {
                     client.send(message);
                 }
             });
+        } else {
+            console.log('Invalid pattern, ignoring:', message);
         }
     });
 
@@ -29,9 +30,9 @@ server.on('connection', (socket) => {
     });
 });
 
-// Function to validate the pattern format (frequency, amplitude, duration)
+// Function to validate pattern format
 function isValidPattern(message) {
-    const patternRegex = /^\d+,\d+,\d+$/; // Matches "freq,amp,dur"
+    const patternRegex = /^\d+,\d+,\d+$/; // Matches "frequency,amplitude,duration"
     return patternRegex.test(message);
 }
 
