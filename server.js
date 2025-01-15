@@ -20,10 +20,16 @@ server.on("connection", (socket) => {
     });
     
     socket.on("message", (message) => {
+        // Forward the message to all other clients
+        server.clients.forEach((client) => {
+            if (client !== socket && client.readyState === WebSocket.OPEN) {
+                client.send(message);
+            }
+        });
+        
         if (message === "OK") {
             console.log("Received OK from client");
         }
-        // Just receive other data without logging
     });
     
     socket.on("close", () => {
