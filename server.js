@@ -5,15 +5,19 @@ const server = new WebSocket.Server({ port: PORT });
 
 server.on('connection', (socket) => {
     console.log('Client connected');
-    socket.send("Hello World");
+    socket.send("Hello World"); // Initial message for connection testing
 
     socket.on('message', (message) => {
         console.log('Received:', message);
-        server.clients.forEach((client) => {
-            if (client !== socket && client.readyState === WebSocket.OPEN) {
-                client.send(message);
-            }
-        });
+
+        // Forward the message only if it's valid pattern data
+        if (isValidPattern(message)) {
+            server.clients.forEach((client) => {
+                if (client !== socket && client.readyState === WebSocket.OPEN) {
+                    client.send(message);
+                }
+            });
+        }
     });
 
     socket.on('pong', () => {
@@ -24,6 +28,12 @@ server.on('connection', (socket) => {
         console.log('Client disconnected');
     });
 });
+
+// Function to validate the pattern format (frequency, amplitude, duration)
+function isValidPattern(message) {
+    const patternRegex = /^\d+,\d+,\d+$/; // Matches "freq,amp,dur"
+    return patternRegex.test(message);
+}
 
 // Heartbeat to keep connections alive
 setInterval(() => {
