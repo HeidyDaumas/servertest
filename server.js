@@ -3,16 +3,13 @@ const WebSocket = require('ws');
 const PORT = process.env.PORT || 8080;
 const server = new WebSocket.Server({ port: PORT });
 
-// Number of allowed missed pings before terminating
-const MAX_MISSED_PINGS = 2;
-const PING_INTERVAL = 30000; // 30 seconds
-
 server.on('connection', (socket) => {
     console.log('Client connected');
-    // Track how many pings the client has missed
-    socket.missedPings = 0;
-    socket.isAlive = true; // Mark it alive initially
 
+    // Mark each new connection as alive from the start
+    socket.isAlive = true;
+
+    // Handle incoming messages
     socket.on('message', (message) => {
         console.log('Received:', message);
 
@@ -28,48 +25,41 @@ server.on('connection', (socket) => {
         }
     });
 
-    // On receiving a pong, mark the socket as alive
+    // When the server gets a pong from this client, mark it as alive again
     socket.on('pong', () => {
         socket.isAlive = true;
-        socket.missedPings = 0;
     });
 
+    // Log disconnection
     socket.on('close', () => {
         console.log('Client disconnected');
     });
 });
 
-// Function to validate pattern format
+// Regex function to validate "frequency,amplitude,duration"
 function isValidPattern(message) {
-    const patternRegex = /^\d+,\d+,\d+$/; // Matches "frequency,amplitude,duration"
+    const patternRegex = /^\d+,\d+,\d+$/; // e.g. "90,30000,100"
     return patternRegex.test(message);
 }
 
-// Heartbeat to keep connections alive
-// We ping each client; if they miss too many pings, we assume they're dead.
+// Periodically send pings to each client, drop unresponsive ones
 setInterval(() => {
     server.clients.forEach((socket) => {
+        // If it's not open, skip
         if (socket.readyState !== WebSocket.OPEN) {
             return;
         }
 
+        // If isAlive was set to false previously, terminate
         if (!socket.isAlive) {
-            socket.missedPings++;
-            console.log(`Socket missed ping #${socket.missedPings}`);
-
-            // Terminate only if it missed pings multiple times in a row
-            if (socket.missedPings >= MAX_MISSED_PINGS) {
-                console.log('Terminating unresponsive socket');
-                return socket.terminate();
-            }
+            console.log('Terminating unresponsive client');
+            return socket.terminate();
         }
 
-        // Mark as not alive until they respond with pong
+        // Otherwise, mark as not alive and send a ping
         socket.isAlive = false;
-
-        // Send ping frame; ws library will auto-handle the “pong” event
-        socket.ping();
+        socket.ping(); // The client should auto-respond with a “pong” frame
     });
-}, PING_INTERVAL);
+}, 10000); // Ping every 10 seconds
 
 console.log(`WebSocket server is running on ws://localhost:${PORT}`);
