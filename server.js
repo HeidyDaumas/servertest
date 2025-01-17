@@ -43,23 +43,6 @@ function isValidPattern(message) {
 }
 
 // Periodically send pings to each client, drop unresponsive ones
-setInterval(() => {
-    server.clients.forEach((socket) => {
-        // If it's not open, skip
-        if (socket.readyState !== WebSocket.OPEN) {
-            return;
-        }
 
-        // If isAlive was set to false previously, terminate
-        if (!socket.isAlive) {
-            console.log('Terminating unresponsive client');
-            return socket.terminate();
-        }
-
-        // Otherwise, mark as not alive and send a ping
-        socket.isAlive = false;
-        socket.ping(); // The client should auto-respond with a “pong” frame
-    });
-}, 10000); // Ping every 10 seconds
 
 console.log(`WebSocket server is running on ws://localhost:${PORT}`);
