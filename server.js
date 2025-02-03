@@ -38,10 +38,9 @@ server.on('connection', (socket) => {
 
 // Regex function to validate "frequency,amplitude,duration"
 function isValidPattern(message) {
-    const patternRegex = /^\d+,\d+,\d+$/; // e.g. "90,30000,100"
+    const patternRegex = /^[a-zA-Z]+,\d+,\d+,\d+$/; // e.g. "sine,1000,30000,5"
     return patternRegex.test(message);
 }
-
 // Periodically send pings to each client, drop unresponsive ones
 
 
