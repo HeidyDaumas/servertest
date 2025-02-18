@@ -15,6 +15,7 @@ server.on('connection', (socket) => {
 
         // Validate and forward only valid pattern data
         if (isValidPattern(message)) {
+            // Forward the full message (including any hand prefix) to all other clients.
             server.clients.forEach((client) => {
                 if (client !== socket && client.readyState === WebSocket.OPEN) {
                     client.send(message);
@@ -36,12 +37,13 @@ server.on('connection', (socket) => {
     });
 });
 
-// Regex function to validate "frequency,amplitude,duration"
+// Regex function to validate an optional hand prefix and then "waveform,frequency,amplitude,duration"
 function isValidPattern(message) {
-    const patternRegex = /^[a-zA-Z]+,\d+,\d+,\d+$/; // e.g. "sine,1000,30000,5"
+    // Accepts an optional "left|" or "right|" prefix.
+    const patternRegex = /^(?:(left|right)\|)?[a-zA-Z]+,\d+,\d+,\d+$/; // e.g. "left|sine,1000,30000,5" or "sine,1000,30000,5"
     return patternRegex.test(message);
 }
-// Periodically send pings to each client, drop unresponsive ones
 
+// (Optional) Periodically ping clients, drop unresponsive ones...
 
 console.log(`WebSocket server is running on ws://localhost:${PORT}`);
