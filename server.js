@@ -42,8 +42,8 @@ server.on('connection', (socket) => {
 function isValidPattern(message) {
     // Regex for lamp commands, e.g., "lamp/0.75", "lamp/on", "lamp/off"
     const lampRegex = /^lamp\/(?:on|off|\d+(?:\.\d+)?)$/;
-    // Regex for waveform commands, e.g., "left|sine,1000,30000,5" or "sine,1000,30000,5"
-    const waveformRegex = /^(?:(left|right)\|)?[a-zA-Z]+,\d+,\d+,\d+$/;
+    // Regex for waveform commands, e.g., "left|sine,1000,30000,5" or "sine,1000,30000,5". Interactor 32 is mouse click
+    const waveformRegex = /^(?:(left|right|32)\|)?[a-zA-Z]+,\d+,\d+,\d+$/;
     
     return lampRegex.test(message) || waveformRegex.test(message);
 }
